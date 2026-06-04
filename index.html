@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Godot Game Dev — Full Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --border: #1e2330;
+    --accent: #478cbf;
+    --accent2: #3fcf8e;
+    --accent3: #e06c75;
+    --text: #cdd6f4;
+    --muted: #6c7086;
+    --code-bg: #0a0c10;
+    --step-active: #478cbf22;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(71,140,191,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(71,140,191,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* Header */
+  header {
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 400;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* Step nav */
+  .step-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .step-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .step-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .step-pill.active { border-color: var(--accent); color: var(--accent); background: var(--step-active); }
+  .step-pill.done { border-color: var(--accent2); color: var(--accent2); background: #3fcf8e11; }
+
+  /* Step cards */
+  .step-card {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .step-card.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .step-number {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 4px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .step-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .step-desc {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-top: 6px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  /* Content blocks */
+  .content-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+
+  .block-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .block-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .block-label.accent { color: var(--accent); }
+  .block-label.green { color: var(--accent2); }
+  .block-label.red { color: var(--accent3); }
+
+  p { line-height: 1.75; font-size: 0.95rem; color: #a6adc8; font-weight: 400; }
+  p + p { margin-top: 10px; }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    position: relative;
+  }
+
+  code {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .cmt { color: var(--muted); font-style: italic; }
+  .num { color: #f78c6c; }
+  .var { color: #ffcb6b; }
+  .type { color: var(--accent); }
+
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    background: var(--border);
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Steps list */
+  ol.steps-list, ul.steps-list {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  ol.steps-list { counter-reset: step-counter; }
+
+  ol.steps-list li {
+    counter-increment: step-counter;
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+    font-size: 0.93rem;
+    color: #a6adc8;
+    line-height: 1.6;
+  }
+
+  ol.steps-list li:last-child { border-bottom: none; }
+
+  ol.steps-list li::before {
+    content: counter(step-counter, decimal-leading-zero);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 3px;
+    min-width: 28px;
+  }
+
+  ul.steps-list li {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.93rem;
+    color: #a6adc8;
+    line-height: 1.6;
+    align-items: flex-start;
+  }
+
+  ul.steps-list li:last-child { border-bottom: none; }
+
+  ul.steps-list li::before {
+    content: '→';
+    color: var(--accent2);
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+    margin-top: 1px;
+  }
+
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--accent); font-style: normal; font-family: 'Space Mono', monospace; font-size: 0.85em; }
+
+  /* Info / warn blocks */
+  .callout {
+    border-left: 3px solid var(--accent2);
+    background: #3fcf8e0a;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 0.88rem;
+    color: #a6adc8;
+    line-height: 1.65;
+  }
+
+  .callout.warn { border-color: #f9e2af; background: #f9e2af0a; }
+  .callout.warn strong { color: #f9e2af; }
+  .callout strong { color: var(--accent2); }
+
+  /* File tree */
+  .file-tree {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 2;
+    color: #a6adc8;
+  }
+
+  .file-tree .dir { color: var(--accent); }
+  .file-tree .file { color: var(--accent2); }
+  .file-tree .indent { color: var(--muted); }
+
+  /* Navigation buttons */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 10px 24px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn:disabled:hover { border-color: var(--border); color: var(--muted); }
+  .nav-btn.primary { border-color: var(--accent); color: var(--accent); background: var(--step-active); }
+  .nav-btn.primary:hover { background: #478cbf33; }
+
+  .mark-done-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 8px 18px;
+    border: 1px solid var(--accent2);
+    background: transparent;
+    color: var(--accent2);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .mark-done-btn:hover { background: #3fcf8e18; }
+  .mark-done-btn.done { background: #3fcf8e18; }
+
+  /* Two-col grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* Completion screen */
+  .completion {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .completion .big-check {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .completion h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: var(--accent2);
+  }
+
+  .completion p { max-width: 480px; margin: 0 auto; font-size: 0.95rem; }
+
+  .restart-btn {
+    margin-top: 32px;
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 12px 28px;
+    border: 1px solid var(--accent);
+    background: var(--step-active);
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .restart-btn:hover { background: #478cbf33; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="tag">// Godot Engine — Complete Walkthrough</div>
+    <h1>Build Your First<br><span>Godot Game</span></h1>
+    <p class="subtitle">A hands-on, step-by-step guide from project setup to a fully playable 2D platformer. No prior Godot experience needed.</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 8 complete</div>
+    </div>
+  </header>
+
+  <!-- Step nav -->
+  <div class="step-nav" id="stepNav"></div>
+
+  <!-- ═══════════════ STEP 1 ═══════════════ -->
+  <div class="step-card active" data-step="0">
+    <div class="step-header">
+      <div class="step-number">STEP 01</div>
+      <div>
+        <div class="step-title">Create a New Project</div>
+        <div class="step-desc">Set up your Godot project folder and configure the renderer.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Project Setup</div>
+      <ol class="steps-list">
+        <li>Open <strong>Godot Engine</strong> — you'll land on the Project Manager screen.</li>
+        <li>Click <strong>"New Project"</strong> in the top-right corner.</li>
+        <li>Give it a name (e.g. <em>MyPlatformer</em>) and choose a folder on disk.</li>
+        <li>Under <strong>Renderer</strong>, select <strong>Forward+ (Vulkan)</strong> for 3D, or <strong>Compatibility (OpenGL)</strong> for 2D/low-end. For this guide choose <strong>Compatibility</strong>.</li>
+        <li>Click <strong>"Create & Edit"</strong> — the Godot editor opens.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Editor Layout Overview</div>
+      <div class="two-col">
+        <div>
+          <p><strong>Scene panel</strong> (top-left) — your scene tree of nodes.</p>
+          <p><strong>Inspector</strong> (right) — properties of the selected node.</p>
+        </div>
+        <div>
+          <p><strong>FileSystem</strong> (bottom-left) — your project files.</p>
+          <p><strong>Viewport</strong> (centre) — what the game looks and feels like.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Tip:</strong> Save your scene early with <strong>Ctrl + S</strong>. Godot will ask you to name it — call it <em>Main.tscn</em>.
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" disabled>← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(0)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 2 ═══════════════ -->
+  <div class="step-card" data-step="1">
+    <div class="step-header">
+      <div class="step-number">STEP 02</div>
+      <div>
+        <div class="step-title">Understand Nodes & Scenes</div>
+        <div class="step-desc">Everything in Godot is a Node. Learn the two most fundamental concepts.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Core Concepts</div>
+      <ul class="steps-list">
+        <li><strong>Node</strong> — the basic building block. Every object (camera, sprite, sound) is a node with specific properties and behaviour.</li>
+        <li><strong>Scene</strong> — a tree of nodes saved as a <em>.tscn</em> file. You can instance scenes inside other scenes (e.g., a Player scene inside your Level scene).</li>
+        <li><strong>Script</strong> — a GDScript (or C#) file attached to a node to give it logic.</li>
+        <li><strong>Signal</strong> — Godot's event system. Nodes emit signals (e.g., <em>body_entered</em>) that other nodes can connect to.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Key Node Types You'll Use</div>
+      <ul class="steps-list">
+        <li><strong>Node2D</strong> — base for all 2D objects. Has position, rotation, scale.</li>
+        <li><strong>Sprite2D</strong> — draws a texture/image in 2D space.</li>
+        <li><strong>CharacterBody2D</strong> — a physics body ideal for player characters.</li>
+        <li><strong>CollisionShape2D</strong> — defines the hitbox of a physics body.</li>
+        <li><strong>TileMapLayer</strong> — paint levels using a tileset.</li>
+        <li><strong>Camera2D</strong> — follows the player, controls the viewport.</li>
+      </ul>
+    </div>
+
+    <div class="callout warn">
+      <strong>Godot 4 note:</strong> TileMap was replaced by <strong>TileMapLayer</strong> in Godot 4.3+. The concepts are identical.
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(0)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(1)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 3 ═══════════════ -->
+  <div class="step-card" data-step="2">
+    <div class="step-header">
+      <div class="step-number">STEP 03</div>
+      <div>
+        <div class="step-title">Create the Player Scene</div>
+        <div class="step-desc">Build a CharacterBody2D player with a sprite and collision shape.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Build the Player Node Tree</div>
+      <ol class="steps-list">
+        <li>In the <strong>Scene panel</strong>, click the <strong>+</strong> icon (or press <strong>Ctrl+A</strong>) → search <em>CharacterBody2D</em> → Add.</li>
+        <li>Rename this root node to <strong>Player</strong> (F2 or double-click).</li>
+        <li>Add a child <strong>Sprite2D</strong>: select Player → Ctrl+A → <em>Sprite2D</em>.</li>
+        <li>Add a child <strong>CollisionShape2D</strong>: select Player → Ctrl+A → <em>CollisionShape2D</em>.</li>
+        <li>In the Inspector with CollisionShape2D selected, set <strong>Shape → New CapsuleShape2D</strong> (or RectangleShape2D). Resize to fit your sprite.</li>
+        <li>Save this as its own scene: <strong>Scene → Save Scene As → Player.tscn</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Assign a Texture</div>
+      <p>In the Inspector with <strong>Sprite2D</strong> selected, drag an image from the FileSystem into the <strong>Texture</strong> property. Godot supports PNG, JPG, SVG. You can use Godot's built-in <em>icon.svg</em> as a placeholder.</p>
+    </div>
+
+    <div class="callout">
+      <strong>Project structure so far:</strong>
+      <div class="file-tree" style="margin-top:10px">
+        <span class="dir">res://</span><br>
+        <span class="indent">├── </span><span class="file">Main.tscn</span><br>
+        <span class="indent">└── </span><span class="file">Player.tscn</span>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(1)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(2)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 4 ═══════════════ -->
+  <div class="step-card" data-step="3">
+    <div class="step-header">
+      <div class="step-number">STEP 04</div>
+      <div>
+        <div class="step-title">Write Player Movement (GDScript)</div>
+        <div class="step-desc">Attach a script to the Player and implement gravity + WASD/arrow movement.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Attach a Script</div>
+      <ol class="steps-list">
+        <li>Select the <strong>Player</strong> root node in the Scene panel.</li>
+        <li>Click the <strong>script icon</strong> in the toolbar (or press <strong>Ctrl+Shift+A</strong>).</li>
+        <li>Keep the template as <em>CharacterBody2D: Basic Movement</em> — click <strong>Create</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Player.gd — Full Script</div>
+      <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="kw">extends</span> <span class="type">CharacterBody2D</span>
+
+<span class="cmt"># ── Constants ──────────────────────────────────────</span>
+<span class="kw">const</span> <span class="var">SPEED</span>    = <span class="num">200.0</span>
+<span class="kw">const</span> <span class="var">JUMP_VEL</span> = <span class="num">-500.0</span>
+<span class="kw">const</span> <span class="var">GRAVITY</span>  = <span class="num">980.0</span>
+
+<span class="kw">func</span> <span class="fn">_physics_process</span>(<span class="var">delta</span>: <span class="type">float</span>) -> <span class="type">void</span>:
+    <span class="cmt"># Apply gravity when not on floor</span>
+    <span class="kw">if not</span> is_on_floor():
+        velocity.y += <span class="var">GRAVITY</span> * <span class="var">delta</span>
+
+    <span class="cmt"># Jump</span>
+    <span class="kw">if</span> <span class="fn">Input.is_action_just_pressed</span>(<span class="str">"ui_accept"</span>) <span class="kw">and</span> is_on_floor():
+        velocity.y = <span class="var">JUMP_VEL</span>
+
+    <span class="cmt"># Horizontal movement</span>
+    <span class="kw">var</span> <span class="var">dir</span> = <span class="fn">Input.get_axis</span>(<span class="str">"ui_left"</span>, <span class="str">"ui_right"</span>)
+    <span class="kw">if</span> <span class="var">dir</span> != <span class="num">0</span>:
+        velocity.x = <span class="var">dir</span> * <span class="var">SPEED</span>
+    <span class="kw">else</span>:
+        velocity.x = <span class="fn">move_toward</span>(velocity.x, <span class="num">0</span>, <span class="var">SPEED</span>)
+
+    <span class="fn">move_and_slide</span>()
+</code></pre>
+    </div>
+
+    <div class="callout">
+      <strong>Default input actions:</strong> <em>ui_left/ui_right</em> = Arrow keys + A/D, <em>ui_accept</em> = Space + Enter. You can customise these in <strong>Project → Project Settings → Input Map</strong>.
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(2)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(3)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(4)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 5 ═══════════════ -->
+  <div class="step-card" data-step="4">
+    <div class="step-header">
+      <div class="step-number">STEP 05</div>
+      <div>
+        <div class="step-title">Build a Level with TileMapLayer</div>
+        <div class="step-desc">Create platforms, ground, and walls using Godot's tile editor.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Create the TileMapLayer</div>
+      <ol class="steps-list">
+        <li>Open <strong>Main.tscn</strong>. Add a child node: <strong>TileMapLayer</strong>.</li>
+        <li>In the Inspector, click <strong>Tile Set → New TileSet</strong>.</li>
+        <li>At the bottom of the editor, the <strong>TileSet panel</strong> opens. Click the <strong>+</strong> to add an Atlas source — drag your tileset image in.</li>
+        <li>Select tiles in the atlas and assign <strong>Physics Layer → New Physics Layer</strong> to give them collision.</li>
+        <li>Switch to the <strong>TileMap</strong> tab at the bottom, select a tile, and <strong>paint</strong> your level in the viewport.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Add a Physics Layer to the TileMapLayer</div>
+      <ol class="steps-list">
+        <li>Select the <strong>TileMapLayer</strong> node → Inspector → <strong>Collision</strong> section.</li>
+        <li>Set <strong>Collision Layer</strong> to <em>1</em> and <strong>Collision Mask</strong> to <em>1</em>.</li>
+        <li>Do the same for your <strong>Player</strong> (CharacterBody2D) so they interact.</li>
+      </ol>
+    </div>
+
+    <div class="callout warn">
+      <strong>Quick tileset:</strong> If you don't have art yet, search for "Kenney platformer tiles" — it's free, open-source, and works perfectly as a placeholder.
+    </div>
+
+    <div class="content-block">
+      <div class="block-label">Instance the Player into Main.tscn</div>
+      <ol class="steps-list">
+        <li>In <strong>Main.tscn</strong>, click <strong>Scene → Instantiate Child Scene</strong> (or drag Player.tscn from FileSystem into the scene tree).</li>
+        <li>Position the Player above your ground tiles in the viewport.</li>
+      </ol>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(3)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(4)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(5)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 6 ═══════════════ -->
+  <div class="step-card" data-step="5">
+    <div class="step-header">
+      <div class="step-number">STEP 06</div>
+      <div>
+        <div class="step-title">Camera & UI Setup</div>
+        <div class="step-desc">Make the camera follow the player and add a simple on-screen HUD.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Camera2D — Following the Player</div>
+      <ol class="steps-list">
+        <li>In <strong>Player.tscn</strong>, add a child <strong>Camera2D</strong> node to the Player.</li>
+        <li>In Inspector, enable <strong>Enabled → On</strong> and set <strong>Zoom</strong> to <em>(2, 2)</em> for a closer view.</li>
+        <li>Enable <strong>Position Smoothing → Enabled</strong> and set <em>Speed</em> to <em>5</em> for a smooth follow.</li>
+        <li>Set <strong>Drag Horizontal/Vertical</strong> to add a lead offset (optional but feels great).</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Simple HUD — CanvasLayer + Label</div>
+      <ol class="steps-list">
+        <li>In <strong>Main.tscn</strong>, add a <strong>CanvasLayer</strong> child — this keeps UI on screen regardless of camera.</li>
+        <li>Add a <strong>Label</strong> child to the CanvasLayer. Set its text to <em>"Score: 0"</em> in the Inspector.</li>
+        <li>In the Layout section, anchor it to <em>Top Left</em> and set <em>Offset Left: 16, Offset Top: 16</em>.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label">Score Script (Main.gd)</div>
+      <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="kw">extends</span> <span class="type">Node</span>
+
+<span class="kw">var</span> <span class="var">score</span> = <span class="num">0</span>
+<span class="kw">@onready var</span> <span class="var">score_label</span> = <span class="fn">$CanvasLayer/Label</span>
+
+<span class="kw">func</span> <span class="fn">add_score</span>(<span class="var">amount</span>: <span class="type">int</span>) -> <span class="type">void</span>:
+    <span class="var">score</span> += <span class="var">amount</span>
+    <span class="var">score_label</span>.text = <span class="str">"Score: %d"</span> % <span class="var">score</span>
+</code></pre>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(4)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(5)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(6)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 7 ═══════════════ -->
+  <div class="step-card" data-step="6">
+    <div class="step-header">
+      <div class="step-number">STEP 07</div>
+      <div>
+        <div class="step-title">Add a Collectible & Enemy</div>
+        <div class="step-desc">Create a coin collectible with Area2D and a basic patrolling enemy.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Coin Scene (Area2D)</div>
+      <ol class="steps-list">
+        <li>Create a new scene with root <strong>Area2D</strong>, rename to <em>Coin</em>.</li>
+        <li>Add children: <strong>Sprite2D</strong> (texture = coin image) + <strong>CollisionShape2D</strong> (CircleShape2D).</li>
+        <li>Attach <strong>Coin.gd</strong>:</li>
+      </ol>
+      <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="kw">extends</span> <span class="type">Area2D</span>
+
+<span class="kw">func</span> <span class="fn">_ready</span>() -> <span class="type">void</span>:
+    <span class="fn">body_entered</span>.<span class="fn">connect</span>(_on_body_entered)
+
+<span class="kw">func</span> <span class="fn">_on_body_entered</span>(<span class="var">body</span>) -> <span class="type">void</span>:
+    <span class="kw">if</span> <span class="var">body</span>.name == <span class="str">"Player"</span>:
+        <span class="cmt"># Tell main scene to add score</span>
+        <span class="fn">get_tree</span>().<span class="fn">get_root</span>().<span class="fn">get_node</span>(<span class="str">"Main"</span>).<span class="fn">add_score</span>(<span class="num">10</span>)
+        <span class="fn">queue_free</span>() <span class="cmt"># Remove coin from scene</span>
+</code></pre>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Simple Patrolling Enemy</div>
+      <ol class="steps-list">
+        <li>Create a new scene: root <strong>CharacterBody2D</strong> → rename <em>Enemy</em>.</li>
+        <li>Add <strong>Sprite2D</strong> + <strong>CollisionShape2D</strong> children.</li>
+        <li>Attach <strong>Enemy.gd</strong>:</li>
+      </ol>
+      <pre><button class="copy-btn" onclick="copyCode(this)">copy</button><code><span class="kw">extends</span> <span class="type">CharacterBody2D</span>
+
+<span class="kw">const</span> <span class="var">SPEED</span>   = <span class="num">80.0</span>
+<span class="kw">const</span> <span class="var">GRAVITY</span> = <span class="num">980.0</span>
+<span class="kw">var</span> <span class="var">direction</span> = <span class="num">1</span>
+
+<span class="kw">func</span> <span class="fn">_physics_process</span>(<span class="var">delta</span>: <span class="type">float</span>) -> <span class="type">void</span>:
+    <span class="kw">if not</span> is_on_floor():
+        velocity.y += <span class="var">GRAVITY</span> * <span class="var">delta</span>
+
+    <span class="cmt"># Flip direction on wall hit</span>
+    <span class="kw">if</span> is_on_wall():
+        <span class="var">direction</span> *= <span class="num">-1</span>
+
+    velocity.x = <span class="var">direction</span> * <span class="var">SPEED</span>
+    <span class="fn">move_and_slide</span>()
+</code></pre>
+    </div>
+
+    <div class="callout">
+      <strong>Instance both</strong> Coin.tscn and Enemy.tscn into Main.tscn by dragging from the FileSystem panel. Place coins on platforms and enemies on patrol paths.
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(5)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(6)">Mark Done ✓</button>
+      <button class="nav-btn primary" onclick="goTo(7)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STEP 8 ═══════════════ -->
+  <div class="step-card" data-step="7">
+    <div class="step-header">
+      <div class="step-number">STEP 08</div>
+      <div>
+        <div class="step-title">Test, Export & Next Steps</div>
+        <div class="step-desc">Run your game, export it, and where to go from here.</div>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label accent">Running Your Game</div>
+      <ul class="steps-list">
+        <li>Press <strong>F5</strong> (or the ▶ Play button) to run the project. Godot will ask for a main scene — choose <em>Main.tscn</em>.</li>
+        <li>Press <strong>F6</strong> to run only the currently open scene (useful for testing individual scenes).</li>
+        <li>Press <strong>F8</strong> or close the window to stop. Check the <strong>Output panel</strong> at the bottom for print statements and errors.</li>
+      </ul>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label green">Exporting (Web / Windows / Mac / Linux)</div>
+      <ol class="steps-list">
+        <li>Go to <strong>Project → Export</strong>.</li>
+        <li>Click <strong>Add…</strong> and choose your platform (e.g., <em>Web</em>, <em>Windows Desktop</em>).</li>
+        <li>If prompted, download the <strong>Export Templates</strong> via the provided link (one-time download).</li>
+        <li>Set your output path, then click <strong>Export Project</strong>. Done — a playable binary or HTML5 build is generated.</li>
+      </ol>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label">Final Project Structure</div>
+      <div class="file-tree">
+        <span class="dir">res://</span><br>
+        <span class="indent">├── </span><span class="file">Main.tscn</span><br>
+        <span class="indent">├── </span><span class="file">Main.gd</span><br>
+        <span class="indent">├── </span><span class="file">Player.tscn</span><br>
+        <span class="indent">├── </span><span class="file">Player.gd</span><br>
+        <span class="indent">├── </span><span class="file">Coin.tscn</span><br>
+        <span class="indent">├── </span><span class="file">Coin.gd</span><br>
+        <span class="indent">├── </span><span class="file">Enemy.tscn</span><br>
+        <span class="indent">├── </span><span class="file">Enemy.gd</span><br>
+        <span class="indent">└── </span><span class="dir">assets/</span>  ← textures, sounds, etc.
+      </div>
+    </div>
+
+    <div class="content-block">
+      <div class="block-label red">What to Learn Next</div>
+      <ul class="steps-list">
+        <li><strong>AnimationPlayer</strong> — for sprite sheet animations (walk, jump, idle).</li>
+        <li><strong>AudioStreamPlayer</strong> — add background music and sound effects.</li>
+        <li><strong>Scene switching</strong> — <em>get_tree().change_scene_to_file("res://GameOver.tscn")</em> for game over screens.</li>
+        <li><strong>Autoload / Singleton</strong> — a global script for score, settings, save data.</li>
+        <li><strong>Shader</strong> — visual effects like screen flash, outlines, pixelation.</li>
+        <li><strong>GDUnit4 / gut</strong> — unit testing your GDScript logic.</li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <strong>Resources:</strong> Official docs at <em>docs.godotengine.org</em> · Community at <em>godotforums.org</em> · Free assets at <em>kenney.nl</em> and <em>itch.io</em>.
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="goTo(6)">← Prev</button>
+      <button class="mark-done-btn" onclick="markDone(7)">Mark Done ✓</button>
+      <button class="nav-btn" disabled>Finish</button>
+    </div>
+  </div>
+
+  <!-- Completion screen (hidden by default) -->
+  <div id="completionScreen" style="display:none">
+    <div class="completion">
+      <span class="big-check">✦</span>
+      <h2>You built a Godot game!</h2>
+      <p>You've gone from a blank project to a playable 2D platformer with movement, tiles, collectibles, an enemy, a camera, and a UI. The hard part was starting — now keep building.</p>
+      <button class="restart-btn" onclick="restart()">↺ Start Over</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 8;
+  const done = new Array(TOTAL).fill(false);
+  let current = 0;
+
+  const steps = [
+    "New Project", "Nodes & Scenes", "Player Scene", "Movement Script",
+    "TileMap Level", "Camera & UI", "Coins & Enemy", "Test & Export"
+  ];
+
+  function buildNav() {
+    const nav = document.getElementById('stepNav');
+    nav.innerHTML = '';
+    steps.forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'step-pill' + (i === current ? ' active' : '') + (done[i] ? ' done' : '');
+      btn.textContent = (i + 1) + '. ' + label;
+      btn.onclick = () => goTo(i);
+      nav.appendChild(btn);
+    });
+  }
+
+  function updateProgress() {
+    const count = done.filter(Boolean).length;
+    document.getElementById('progressFill').style.width = (count / TOTAL * 100) + '%';
+    document.getElementById('progressLabel').textContent = count + ' / ' + TOTAL + ' complete';
+    if (count === TOTAL) {
+      setTimeout(() => {
+        document.querySelectorAll('.step-card').forEach(c => c.style.display = 'none');
+        document.getElementById('stepNav').style.display = 'none';
+        document.getElementById('completionScreen').style.display = 'block';
+      }, 400);
+    }
+  }
+
+  function goTo(idx) {
+    document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.step-card')[idx].classList.add('active');
+    current = idx;
+    buildNav();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function markDone(idx) {
+    done[idx] = true;
+    const btn = document.querySelectorAll('.mark-done-btn')[idx];
+    if (btn) { btn.textContent = '✓ Done'; btn.classList.add('done'); }
+    buildNav();
+    updateProgress();
+  }
+
+  function copyCode(btn) {
+    const code = btn.nextElementSibling.innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'copied!';
+      setTimeout(() => btn.textContent = 'copy', 1800);
+    });
+  }
+
+  function restart() {
+    done.fill(false);
+    current = 0;
+    document.getElementById('completionScreen').style.display = 'none';
+    document.getElementById('stepNav').style.display = 'flex';
+    document.querySelectorAll('.step-card').forEach((c, i) => {
+      c.style.display = '';
+      c.classList.toggle('active', i === 0);
+    });
+    document.querySelectorAll('.mark-done-btn').forEach(b => {
+      b.textContent = 'Mark Done ✓';
+      b.classList.remove('done');
+    });
+    buildNav();
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  buildNav();
+</script>
+</body>
+</html>
