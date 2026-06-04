@@ -399,8 +399,65 @@
     margin-top: 16px;
   }
 
+  /* ── Mobile fixes ─────────────────────────────── */
   @media (max-width: 600px) {
+    .wrapper { padding: 0 16px 60px; }
+
+    header { padding: 36px 0 32px; margin-bottom: 28px; }
+
+    h1 { font-size: 1.75rem; }
+
+    .step-title { font-size: 1.3rem; }
+
+    .step-header { gap: 12px; }
+
+    .content-block { padding: 16px; }
+
+    /* Code blocks: scroll horizontally, don't blow the layout */
+    pre {
+      padding: 40px 14px 14px; /* extra top padding so copy btn doesn't overlap code */
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    code { font-size: 0.75rem; }
+
+    /* Copy button always top-right, clear of code */
+    .copy-btn { top: 8px; right: 8px; }
+
+    /* Nav row: stack on very small screens */
+    .nav-row {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      padding: 8px 14px;
+      font-size: 11px;
+      flex: 1;
+      justify-content: center;
+      min-width: 80px;
+    }
+
+    .mark-done-btn {
+      order: -1; /* move above prev/next */
+      width: 100%;
+      text-align: center;
+    }
+
     .two-col { grid-template-columns: 1fr; }
+
+    /* Step pills: allow wrapping, smaller font */
+    .step-pill { font-size: 10px; padding: 5px 10px; }
+
+    /* Callout */
+    .callout { padding: 12px 14px; font-size: 0.83rem; }
+
+    /* File tree */
+    .file-tree { font-size: 0.75rem; overflow-x: auto; display: block; }
+
+    .completion h2 { font-size: 1.6rem; }
   }
 
   /* Completion screen */
@@ -936,7 +993,7 @@
 
   function markDone(idx) {
     done[idx] = true;
-    const btn = document.querySelectorAll('.mark-done-btn')[idx];
+    const btn = document.querySelector(`.step-card[data-step="${idx}"] .mark-done-btn`);
     if (btn) { btn.textContent = '✓ Done'; btn.classList.add('done'); }
     buildNav();
     updateProgress();
@@ -958,10 +1015,8 @@
     document.querySelectorAll('.step-card').forEach((c, i) => {
       c.style.display = '';
       c.classList.toggle('active', i === 0);
-    });
-    document.querySelectorAll('.mark-done-btn').forEach(b => {
-      b.textContent = 'Mark Done ✓';
-      b.classList.remove('done');
+      const btn = c.querySelector('.mark-done-btn');
+      if (btn) { btn.textContent = 'Mark Done ✓'; btn.classList.remove('done'); }
     });
     buildNav();
     updateProgress();
